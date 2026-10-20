@@ -67,7 +67,13 @@ async function loginUserController(req, res) {
         { expiresIn: '1h' }
     );
 
-    res.cookie('token', token, { httpOnly: true, secure: true, sameSite: 'Strict' });
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        path: "/",
+        maxAge: 60 * 60 * 1000
+    });
 
     res.status(200).json({
         message: 'User logged in successfully',
@@ -89,7 +95,12 @@ async function logoutUserController(req, res) {
     await tokenBlacklistModel.create({ token });
 
     // Clear the token cookie
-    res.clearCookie('token');
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        path: "/"
+    });
 
     res.status(200).json({ message: 'User logged out successfully' });
 }
